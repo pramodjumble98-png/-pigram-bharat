@@ -2,12 +2,50 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PIGRAM BHARAT</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<script>
+  Pi.init({ version: "2.0", sandbox: false });
+</script>
+<style>
+  body{background:#FFD700;text-align:center;font-family:Arial;padding:20px}
+  button{background:#6a0dad;color:white;padding:15px 30px;font-size:18px;border:none;border-radius:10px;margin-top:20px}
+</style>
 </head>
-<body style="background:#FFD700;text-align:center;padding:50px;font-family:Arial">
+<body>
 <h1>🇮🇳 PIGRAM BHARAT 🇮🇳</h1>
 <h2>Pi Network - Live</h2>
 <p>pigram-bharat.vercel.app</p>
+<p id="user"></p>
+<button onclick="login()">Login with Pi</button><br>
+<button onclick="pay()">Pay 0.01 Pi - Test Payment</button>
+<p id="status"></p>
+
+<script>
+async function login(){
+  try{
+    const auth = await Pi.authenticate(['username','payments'], (p)=>{});
+    document.getElementById('user').innerText = "Welcome: " + auth.user.username;
+    document.getElementById('status').innerText = "Login Success!";
+  }catch(e){ document.getElementById('status').innerText = "Login Failed: " + e; }
+}
+
+async function pay(){
+  try{
+    document.getElementById('status').innerText = "Creating payment...";
+    await Pi.createPayment({
+      amount: 0.01,
+      memo: "PiGram Bharat Test Payment",
+      metadata: {test: "aigram"}
+    },{
+      onReadyForServerApproval: (id)=>{ fetch('/api/approve',{method:'POST',body:JSON.stringify({paymentId:id})}); },
+      onReadyForServerCompletion: (id,txid)=>{ fetch('/api/complete',{method:'POST',body:JSON.stringify({paymentId:id,txid:txid})}); document.getElementById('status').innerText = "Payment Success! Tx: "+txid; },
+      onCancel: ()=>{ document.getElementById('status').innerText = "Payment Cancelled"; },
+      onError: (e)=>{ document.getElementById('status').innerText = "Payment Error: "+e; }
+    });
+  }catch(e){ document.getElementById('status').innerText = "Pay Error: "+e; }
+}
+</script>
 </body>
 </html>
