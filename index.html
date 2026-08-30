@@ -6,46 +6,46 @@
 <title>PIGRAM BHARAT</title>
 <script src="https://sdk.minepi.com/pi-sdk.js"></script>
 <script>
-  Pi.init({ version: "2.0", sandbox: false });
+  Pi.init({ version: "2.0", sandbox: false })
+  const translations = {
+    marathi: { h1: "🇮🇳 PIGRAM BHARAT 🇮🇳", h2: "Pi नेटवर्क - लाईव्ह", btn: "Pi ने लॉगिन करा" },
+    hindi: { h1: "🇮🇳 PIGRAM BHARAT 🇮🇳", h2: "Pi नेटवर्क - लाईव्ह", btn: "Pi से लॉगिन करें" },
+    english: { h1: "🇮🇳 PIGRAM BHARAT 🇮🇳", h2: "Pi Network - Live", btn: "Login with Pi" }
+  };
+  function setLang(l){
+    localStorage.setItem('pigram-lang', l);
+    document.getElementById('title-h1').innerText = translations[l].h1;
+    document.getElementById('title-h2').innerText = translations[l].h2;
+    document.getElementById('loginBtn').innerText = translations[l].btn;
+    document.querySelectorAll('.lang-btn').forEach(b=>b.style.background='#333');
+    document.getElementById('btn-'+l).style.background='#6a0dad';
+  }
 </script>
 <style>
-  body{background:#FFD700;text-align:center;font-family:Arial;padding:20px}
-  button{background:#6a0dad;color:white;padding:15px 30px;font-size:18px;border:none;border-radius:10px;margin-top:20px}
+  body{background:#FFD700;text-align:center;font-family:sans-serif;padding:20px}
+  button{background:#6a0dad;color:white;padding:12px 20px;border:none;border-radius:25px;font-size:16px;margin:5px;cursor:pointer}
+ .lang-bar{background:#222;padding:6px;border-radius:30px;display:inline-flex;gap:5px;margin-bottom:15px}
+ .lang-btn{background:#333!important;padding:8px 15px!important;font-size:14px!important}
 </style>
 </head>
-<body>
-<h1>🇮🇳 PIGRAM BHARAT 🇮🇳</h1>
-<h2>Pi Network - Live</h2>
+<body onload="setLang(localStorage.getItem('pigram-lang')||'marathi')">
+
+<div class="lang-bar">
+  <button class="lang-btn" id="btn-marathi" onclick="setLang('marathi')">मराठी</button>
+  <button class="lang-btn" id="btn-hindi" onclick="setLang('hindi')">हिंदी</button>
+  <button class="lang-btn" id="btn-english" onclick="setLang('english')">ENG</button>
+</div>
+
+<h1 id="title-h1">🇮🇳 PIGRAM BHARAT 🇮🇳</h1>
+<h2 id="title-h2">Pi Network - Live</h2>
 <p>pigram-bharat.vercel.app</p>
-<p id="user"></p>
-<button onclick="login()">Login with Pi</button><br>
-<button onclick="pay()">Pay 0.01 Pi - Test Payment</button>
-<p id="status"></p>
+
+<button id="loginBtn" onclick="onLogin()">Pi ने लॉगिन करा</button>
 
 <script>
-async function login(){
-  try{
-    const auth = await Pi.authenticate(['username','payments'], (p)=>{});
-    document.getElementById('user').innerText = "Welcome: " + auth.user.username;
-    document.getElementById('status').innerText = "Login Success!";
-  }catch(e){ document.getElementById('status').innerText = "Login Failed: " + e; }
-}
-
-async function pay(){
-  try{
-    document.getElementById('status').innerText = "Creating payment...";
-    await Pi.createPayment({
-      amount: 0.01,
-      memo: "PiGram Bharat Test Payment",
-      metadata: {test: "aigram"}
-    },{
-      onReadyForServerApproval: (id)=>{ fetch('/api/approve',{method:'POST',body:JSON.stringify({paymentId:id})}); },
-      onReadyForServerCompletion: (id,txid)=>{ fetch('/api/complete',{method:'POST',body:JSON.stringify({paymentId:id,txid:txid})}); document.getElementById('status').innerText = "Payment Success! Tx: "+txid; },
-      onCancel: ()=>{ document.getElementById('status').innerText = "Payment Cancelled"; },
-      onError: (e)=>{ document.getElementById('status').innerText = "Payment Error: "+e; }
-    });
-  }catch(e){ document.getElementById('status').innerText = "Pay Error: "+e; }
-}
+  async function onLogin(){
+    try{ const auth = await Pi.authenticate(['username']); alert('स्वागत आहे ' + auth.user.username + '! Jai Hind!'); }catch(e){ alert('Pi Browser मध्ये उघडा!'); }
+  }
 </script>
 </body>
 </html>
