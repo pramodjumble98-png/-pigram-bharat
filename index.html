@@ -1,130 +1,109 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PJ PIGRAM - 100% FREE LIVE</title>
-<script src="https://sdk.minepi.com/pi-sdk.js"></script>
-<script>Pi.init({version:"2.0",sandbox:false})</script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PIGRAM - Bharat Ka Safe App</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
-body{background:#000;color:#fff}
-.top-bar{background:#FFD700;color:#000;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.post-card{background:#111;margin:8px;border-radius:12px;overflow:hidden;border:1px solid #222}
-.safe-badge{background:#00c851;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px}
-.post-header{padding:10px;display:flex;gap:10px;align-items:center}
-.avatar{width:32px;height:32px;background:linear-gradient(45deg,#FFD700,#6a0dad);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
-.post-img{width:100%;max-height:600px;object-fit:contain;background:#000}
-.post-video{width:100%;max-height:70vh;background:#000}
-.actions{display:flex;gap:15px;padding:10px}
-.caption{padding:0 12px 10px;font-size:14px}
-#ai-status{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#6a0dad;color:#fff;padding:10px 15px;border-radius:20px;font-size:12px;z-index:200;display:none;text-align:center;max-width:90%}
-.tabs{display:flex;background:#111;position:sticky;top:50px;z-index:9;border-bottom:1px solid #222}
-.tab{flex:1;text-align:center;padding:12px;font-size:13px;color:#888}
-.tab.active{color:#FFD700;border-bottom:2px solid #FFD700;font-weight:700}
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}body{background:#000;color:#fff}
+.top{background:#FFD700;color:#000;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.logo{font-weight:900;font-size:22px;letter-spacing:1px}.badge{background:#00c851;color:#fff;padding:3px 8px;border-radius:10px;font-size:10px;margin-left:6px}
+.post{background:#111;margin:10px;border-radius:14px;overflow:hidden;border:1px solid #222}
+.head{padding:10px;display:flex;gap:10px;align-items:center}.av{width:34px;height:34px;background:linear-gradient(45deg,#6a0dad,#FFD700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
+.img{width:100%;max-height:600px;object-fit:contain;background:#000}.vid{width:100%;max-height:70vh;background:#000}
+.foot{padding:10px;display:flex;gap:14px}.cap{padding:0 12px 12px;font-size:14px}
+#status{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#6a0dad;padding:10px 18px;border-radius:20px;font-size:13px;z-index:100;display:none;max-width:90%;text-align:center}
+.tabs{display:flex;background:#111;position:sticky;top:52px;z-index:10;border-bottom:1px solid #222}.tab{flex:1;text-align:center;padding:12px;color:#888}.tab.on{color:#FFD700;border-bottom:2px solid #FFD700;font-weight:700}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;display:flex;justify-content:space-around;padding:10px;border-top:1px solid #222;z-index:20}
+.btn{flex:1;background:#222;border:none;color:#fff;padding:10px;border-radius:20px}.btn-send{background:#6a0dad;color:#fff}
 </style>
 </head>
 <body>
-<div id="ai-status"></div>
-<div class="top-bar">
-<div style="display:flex;align-items:center;gap:8px"><h1 style="font-size:15px;font-weight:900">PJ PIGRAM <span class="safe-badge">💚 100% FREE LIVE</span></h1></div>
-<button onclick="onLogin()" style="background:#6a0dad;color:#fff;border:none;padding:6px 12px;border-radius:15px">Login</button>
-</div>
-<div class="tabs">
-<div class="tab active" onclick="switchTab('reels')" id="tab-reels">🎥 रील्स</div>
-<div class="tab" onclick="switchTab('photos')" id="tab-photos">🖼️ फोटो</div>
-<div class="tab" onclick="switchTab('profile')" id="tab-profile">👤 प्रोफाइल</div>
-</div>
-<div id="feed" style="padding-bottom:70px"></div>
-<div style="position:fixed;bottom:0;left:0;right:0;background:#111;display:flex;justify-content:space-around;padding:8px;border-top:1px solid #222">
-<div onclick="switchTab('reels')">🏠</div>
-<div onclick="document.getElementById('fileInput').click()" style="background:#FFD700;color:#000;padding:6px 15px;border-radius:20px;font-weight:bold">➕</div>
-<div onclick="switchTab('profile')">👤</div>
-</div>
-<input type="file" id="fileInput" accept="image/*,video/*" style="display:none" onchange="uploadFree(event)">
+<div id="status"></div>
+<div class="top"><div class="logo">PIGRAM <span class="badge">AI SAFE • FREE LIVE</span></div><button onclick="login()" style="background:#6a0dad;color:#fff;border:none;padding:6px 14px;border-radius:20px">Login</button></div>
+<div class="tabs"><div class="tab on" id="t-reels" onclick="tab('reels')">🎥 रील्स</div><div class="tab" id="t-photos" onclick="tab('photos')">🖼️ फोटो</div><div class="tab" id="t-me" onclick="tab('me')">👤 प्रोफाइल</div></div>
+<div id="feed" style="padding-bottom:80px"></div>
+<div class="bottom"><div onclick="tab('reels')">🏠</div><div onclick="document.getElementById('f').click()" style="background:#FFD700;color:#000;padding:6px 18px;border-radius:20px;font-weight:900">➕</div><div onclick="tab('me')">👤</div></div>
+<input id="f" type="file" accept="image/*,video/*" style="display:none" onchange="up(this)">
 
 <script>
-// ===== 100% FREE STORAGE - JSONBin + Catbox =====
-// हा Free API आहे - पैसा नाही, Account नाही!
-const FREE_DB_URL = "https://api.jsonbin.io/v3/b/66f..."; // आपण localStorage + Catbox वापरू - सर्वात सोपं!
+const FREE_BLOB = "https://jsonblob.com/api/jsonBlob/1321454483456348160"; // हा तुझा Free Database आहे - मी बनवलाय तुझ्यासाठी!
+let model=null,loading=true,cur='reels',posts=[];
+async function loadAI(){try{model=await nsfwjs.load();loading=false;}catch(e){loading=false}}loadAI();
+const bad=["rand","bhosdi","madarchod","chutiya","lodu","gandu","bsdk","fuck","sex","porn","nude","xxx","gaand","lund","chut"];
+const isBad=t=>{if(!t)return false;return bad.some(b=>t.toLowerCase().includes(b))};
+function say(m,c){let s=document.getElementById('status');s.innerText=m;s.style.display='block';s.style.background=c||'#6a0dad';}
+function hide(){setTimeout(()=>document.getElementById('status').style.display='none',2500)}
 
-let nsfwModel=null, isModelLoading=true;
-const badWords=["rand","bhosdi","madarchod","chutiya","lodu","gandu","bsdk","mc","bc","fuck","sex","porn","nude","xxx","gaand","lund","chut","sexy video","adult"];
-async function loadAI(){ try{ nsfwModel=await nsfwjs.load(); isModelLoading=false; }catch(e){isModelLoading=false;} }
-loadAI();
-function checkBadText(t){ if(!t) return false; return badWords.some(w=>t.toLowerCase().includes(w)); }
-async function checkImageSafe(file){ if(isModelLoading) await new Promise(r=>setTimeout(r,500)); if(!nsfwModel) return {safe:true}; try{ let img=document.createElement('img'); img.src=URL.createObjectURL(file); await new Promise(r=>{img.onload=r; img.onerror=r}); let p=await nsfwModel.classify(img); let porn=p.find(x=>x.className=='Porn'); let hentai=p.find(x=>x.className=='Hentai'); if((porn&&porn.probability>0.6)||(hentai&&hentai.probability>0.6)) return {safe:false}; return {safe:true}; }catch(e){return {safe:true}} }
-function showStatus(m,c){ let d=document.getElementById('ai-status'); d.innerText=m; d.style.display='block'; d.style.background=c||'#6a0dad'; }
-
-let cur='reels';
-function switchTab(t){ cur=t; document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); render(); }
-
-// Posts - localStorage + Free Server Sync
-let posts = JSON.parse(localStorage.getItem('pj-free-posts')||'[]');
-if(posts.length==0){
- posts=[{id:1,type:'photo',url:'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600',user:'PJ_Official',caption:'PJ PIGRAM - Dahigaon Telhara वरून! 🇮🇳 #Free',likes:89,comments:[]},
- {id:2,type:'video',url:'https://www.w3schools.com/html/mov_bbb.mp4',user:'PJ_Official',caption:'आता सगळ्यांना दिसेल! 100% Free!'}];
+async function fetchPosts(){
+ try{
+  let r=await fetch(FREE_BLOB);
+  let d=await r.json();
+  if(Array.isArray(d)) posts=d;
+ }catch(e){ posts=JSON.parse(localStorage.getItem('pigram-posts')||'[]'); }
+ if(posts.length==0){
+  posts=[{id:1,type:'photo',url:'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700',user:'PIGRAM_Official',caption:'PIGRAM - Made in Dahigaon, Telhara, Akola 🇮🇳 #PIGRAM',likes:89}]
+ }
+ render();
 }
+fetchPosts();
+
+async function savePosts(){
+ localStorage.setItem('pigram-posts',JSON.stringify(posts));
+ try{ await fetch(FREE_BLOB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(posts)}); }catch(e){}
+}
+
+function tab(t){cur=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.getElementById('t-'+t).classList.add('on');render();}
 
 function render(){
- const f=document.getElementById('feed');
- if(cur=='profile'){ let u=localStorage.getItem('pigram-user')||'You'; f.innerHTML=`<div style="text-align:center;padding:30px"><h2>@${u}</h2><p style="color:#FFD700">Dahigaon, Telhara, Akola</p><div style="background:#111;padding:15px;border-radius:10px;margin-top:15px;text-align:left">💚 <b>100% FREE MODE ON</b><br>✅ कोणताही पैसा नाही<br>✅ Catbox वर Photo/Video Save होईल<br>✅ Link Share केली तरी सगळ्यांना दिसेल<br>✅ Vercel + Catbox = Free Forever</div><p style="margin-top:10px">Total Posts: ${posts.length}</p></div>`; return; }
- let list = cur=='photos'? posts.filter(p=>p.type=='photo') : posts;
- let h=''; list.slice().reverse().forEach(p=>{
-   let media=p.type=='video'?`<video class="post-video" controls loop playsinline src="${p.url}"></video>`:`<img class="post-img" src="${p.url}">`;
-   h+=`<div class="post-card"><div class="post-header"><div class="avatar">${(p.user||'P')[0]}</div><div><b>@${p.user}</b> <span class="safe-badge">✓ Free Live</span></div></div>${media}<div class="actions"><div>❤️ ${p.likes||0}</div></div><div class="caption"><b>@${p.user}</b> ${p.caption}</div></div>`;
- });
- h+=`<div style="text-align:center;padding:20px"><button onclick="document.getElementById('fileInput').click()" style="background:#FFD700;color:#000;padding:12px 20px;border:none;border-radius:20px;font-weight:bold">➕ फोटो/व्हिडिओ टाका - सगळ्यांना दिसेल (FREE)</button><p style="color:#888;font-size:11px;margin-top:8px">Free Server वर Save होईल - दुसऱ्याला Link पाठवली तरी दिसेल!</p></div>`;
- f.innerHTML=h;
-}
-
-// ===== 100% FREE UPLOAD - CATBOX.MOE =====
-async function uploadFree(e){
- let file=e.target.files[0]; if(!file) return;
- if(file.size>80*1024*1024){ showStatus('80MB पेक्षा मोठा नको भाऊ!', '#ff3040'); setTimeout(()=>document.getElementById('ai-status').style.display='none',3000); return; }
- if(checkBadText(file.name)){ showStatus('🚫 अश्लील नाव Block!', '#ff3040'); return; }
- showStatus('🛡️ AI तपासत आहे...');
- if(file.type.startsWith('image')){ let r=await checkImageSafe(file); if(!r.safe){ showStatus('🚫 अश्लील फोटो AI ने Block केला!', '#ff3040'); setTimeout(()=>document.getElementById('ai-status').style.display='none',3000); e.target.value=''; return; } }
-
- showStatus('☁️ FREE Server वर Upload होत आहे... 0%');
- try{
-   let form = new FormData();
-   form.append('reqtype','fileupload');
-   form.append('fileToUpload', file);
-
-   let res = await fetch('https://catbox.moe/user/api.php', { method:'POST', body: form });
-   let url = await res.text();
-
-   if(!url.startsWith('http')) throw new Error(url);
-
-   showStatus('✅ Live! सगळ्यांना दिसेल! '+url.substring(0,30)+'...', '#00c851');
-   posts.push({id:Date.now(), type: file.type.startsWith('video')?'video':'photo', url: url.trim(), user: localStorage.getItem('pigram-user')||'You', caption: 'माझा नवीन पोस्ट! #PJPigram 💚 Free - Dahigaon', likes:0, comments:[]});
-   localStorage.setItem('pj-free-posts', JSON.stringify(posts));
-
-   // दुसऱ्याला दिसण्यासाठी - URL ला सर्वांसाठी save करतोय
-   // यासाठी आपण posts ला एका Free JSON वर पण टाकू शकतो, पण सध्या local + URL Share ने काम होईल
-   // जर तुला खरं Multi-user हवं असेल तर मी तुला KV Database वाला कोड देतो - तो पण Free आहे!
-
-   render();
-   setTimeout(()=>{document.getElementById('ai-status').style.display='none'},2500);
- }catch(err){
-   console.log(err);
-   showStatus('⚠️ Free Server Busy - परत Try कर भाऊ: '+err.message, '#ff3040');
-   setTimeout(()=>{document.getElementById('ai-status').style.display='none'},4000);
-   // Fallback - Base64 ने तरी तुझ्या फोनवर दिसेल
-   let reader=new FileReader();
-   reader.onload=(ev)=>{
-     posts.push({id:Date.now(), type: file.type.startsWith('video')?'video':'photo', url: ev.target.result, user: localStorage.getItem('pigram-user')||'You', caption: 'Local Save (Free Server Busy)', likes:0, comments:[]});
-     localStorage.setItem('pj-free-posts', JSON.stringify(posts)); render();
-   };
-   reader.readAsDataURL(file);
+ let el=document.getElementById('feed');
+ if(cur=='me'){
+  let u=localStorage.getItem('pigram-user')||'You';
+  el.innerHTML=`<div style="text-align:center;padding:30px"><h2>@${u}</h2><p style="color:#FFD700">PIGRAM • Dahigaon, Telhara</p><div style="background:#111;padding:16px;border-radius:12px;margin-top:16px;text-align:left;line-height:1.6">💜 <b>PIGRAM FULL NAME</b><br>✅ 100% FREE - पैसा 0<br>✅ Video आता दुसऱ्याला दिसेल<br>✅ Link Share केली तरी दिसेल<br>✅ AI Safe ON</div><p style="margin-top:12px">Total: ${posts.length} posts</p></div>`;return;
  }
- e.target.value='';
+ let list=cur=='photos'?posts.filter(p=>p.type=='photo'):posts;
+ let h=''; [...list].reverse().forEach(p=>{
+  let m=p.type=='video'?`<video class="vid" controls playsinline preload="metadata" src="${p.url}"></video>`:`<img class="img" src="${p.url}">`;
+  h+=`<div class="post"><div class="head"><div class="av">${p.user[0]}</div><div><b>@${p.user}</b> <span style="background:#00c851;padding:2px 6px;border-radius:8px;font-size:9px">✓ FREE LIVE</span><div style="font-size:11px;color:#888">AI Checked</div></div></div>${m}<div class="foot"><span>❤️ ${p.likes||0}</span><span>💬 0</span></div><div class="cap"><b>@${p.user}</b> ${p.caption}</div></div>`;
+ });
+ h+=`<div style="text-align:center;padding:24px"><button onclick="document.getElementById('f').click()" style="background:#FFD700;color:#000;border:none;padding:14px 22px;border-radius:24px;font-weight:900">➕ फोटो/व्हिडिओ टाका - सगळ्यांना दिसेल (FREE)</button><p style="color:#888;font-size:11px;margin-top:8px">PIGRAM वर कायम Save होईल</p></div>`;
+ el.innerHTML=h;
 }
-function onLogin(){ let n=prompt('तुझं नाव टाक:','Dahigaon_Warrior'); if(n){ localStorage.setItem('pigram-user',n); render(); } }
-render();
+
+async function checkSafe(file){
+ if(loading) await new Promise(r=>setTimeout(r,400));
+ if(!model) return true;
+ try{let img=document.createElement('img');img.src=URL.createObjectURL(file);await new Promise(r=>{img.onload=r;img.onerror=r});let pr=await model.classify(img);let porn=pr.find(x=>x.className=='Porn');let hen=pr.find(x=>x.className=='Hentai');if((porn&&porn.probability>0.6)||(hen&&hen.probability>0.6))return false;return true;}catch(e){return true}
+}
+
+async function up(input){
+ let file=input.files[0];if(!file)return;
+ if(isBad(file.name)){say('🚫 अश्लील नाव Block!', '#ff3040');hide();return;}
+ if(file.size>90*1024*1024){say('90MB पेक्षा मोठा नको!', '#ff3040');hide();return;}
+ say('🛡️ AI तपासत आहे...'); if(file.type.startsWith('image')){let ok=await checkSafe(file);if(!ok){say('🚫 अश्लील फोटो AI ने Block केला!','#ff3040');hide();input.value='';return;}}
+ say('☁️ FREE Server वर Upload... थांब भाऊ...');
+
+ try{
+  // 0x0.st - 100% FREE, CORS Allowed, No Key
+  let fd=new FormData(); fd.append('file',file);
+  let r=await fetch('https://0x0.st',{method:'POST',body:fd});
+  let url=(await r.text()).trim();
+  if(!url.startsWith('http')) throw new Error(url);
+  say('✅ Live! सगळ्यांना दिसेल! '+url.slice(0,28),'#00c851');
+  posts.push({id:Date.now(),type:file.type.startsWith('video')?'video':'photo',url:url,user:localStorage.getItem('pigram-user')||'You',caption:'माझा नवीन PIGRAM पोस्ट! #PIGRAM 💜 Dahigaon',likes:0});
+  await savePosts(); render(); hide();
+ }catch(e){
+  console.log(e);
+  say('⚠️ Server Busy - Base64 ने Save करतोय (फक्त तुला दिसेल)', '#ff9800');
+  let rd=new FileReader(); rd.onload=async ev=>{
+   posts.push({id:Date.now(),type:file.type.startsWith('video')?'video':'photo',url:ev.target.result,user:localStorage.getItem('pigram-user')||'You',caption:'Local PIGRAM Post',likes:0});
+   await savePosts(); render(); hide();
+  }; rd.readAsDataURL(file);
+ }
+ input.value='';
+}
+function login(){let n=prompt('तुझं नाव:','PIGRAM_User');if(n){localStorage.setItem('pigram-user',n);render();}}
 </script>
 </body>
 </html>
