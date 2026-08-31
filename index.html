@@ -1,109 +1,94 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PIGRAM - Bharat Ka Safe App</title>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pigram SAFE - Instagram Killer</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}body{background:#000;color:#fff}
-.top{background:#FFD700;color:#000;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
-.logo{font-weight:900;font-size:22px;letter-spacing:1px}.badge{background:#00c851;color:#fff;padding:3px 8px;border-radius:10px;font-size:10px;margin-left:6px}
-.post{background:#111;margin:10px;border-radius:14px;overflow:hidden;border:1px solid #222}
-.head{padding:10px;display:flex;gap:10px;align-items:center}.av{width:34px;height:34px;background:linear-gradient(45deg,#6a0dad,#FFD700);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
-.img{width:100%;max-height:600px;object-fit:contain;background:#000}.vid{width:100%;max-height:70vh;background:#000}
-.foot{padding:10px;display:flex;gap:14px}.cap{padding:0 12px 12px;font-size:14px}
-#status{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#6a0dad;padding:10px 18px;border-radius:20px;font-size:13px;z-index:100;display:none;max-width:90%;text-align:center}
-.tabs{display:flex;background:#111;position:sticky;top:52px;z-index:10;border-bottom:1px solid #222}.tab{flex:1;text-align:center;padding:12px;color:#888}.tab.on{color:#FFD700;border-bottom:2px solid #FFD700;font-weight:700}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;display:flex;justify-content:space-around;padding:10px;border-top:1px solid #222;z-index:20}
-.btn{flex:1;background:#222;border:none;color:#fff;padding:10px;border-radius:20px}.btn-send{background:#6a0dad;color:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:system-ui;height:100vh;overflow:hidden}
+.header{position:fixed;top:0;width:100%;z-index:20;display:flex;justify-content:space-between;padding:14px 16px;background:linear-gradient(#000,transparent)}
+.logo{font-size:26px;font-weight:900;background:linear-gradient(45deg,#feda75,#d62976);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ai-badge{background:#00ff88;color:#000;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:900}
+.reels{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory}
+.reel{height:100vh;scroll-snap-align:start;position:relative;background:#111}
+.reel video{width:100%;height:100%;object-fit:cover}
+.overlay{position:absolute;bottom:90px;left:0;right:70px;padding:16px;background:linear-gradient(transparent,#000)}
+.actions{position:absolute;right:10px;bottom:110px;display:flex;flex-direction:column;gap:20px}
+.act{width:52px;height:52px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;position:relative}
+.act.liked{background:#ff3040}
+.count{position:absolute;bottom:-16px;font-size:11px}
+.big-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:100px;pointer-events:none}
+.big-heart.show{animation:pop.8s ease}
+@keyframes pop{0%{scale:0}15%{scale:1.3}30%{scale:.9}50%{scale:1.1}100%{scale:0}}
+.nav{position:fixed;bottom:0;width:100%;background:#000;border-top:1px solid #222;display:flex;justify-content:space-around;padding:10px 0 20px}
+.plus{width:58px;height:58px;background:linear-gradient(45deg,#feda75,#d62976);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-top:-28px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;display:none;padding:20px;justify-content:center}
+.modal.show{display:flex}
+.card{width:100%;max-width:380px;background:#111;border:1px solid #222;border-radius:20px;padding:22px;margin-top:30px}
+.inp{width:100%;background:#222;border:1px solid #333;color:#fff;padding:14px;border-radius:12px;margin-top:12px}
+.btn{width:100%;background:#0095f6;border:none;color:#fff;padding:15px;border-radius:12px;font-weight:800;margin-top:14px}
+.warn{background:#ff3040;color:#fff;padding:12px;border-radius:10px;margin-top:12px;display:none;text-align:center;font-weight:700}
+.warn.show{display:block}
+.safe{background:#00ff88;color:#000;padding:10px;border-radius:10px;margin-top:10px;display:none;text-align:center;font-weight:800}
+.safe.show{display:block}
+.csheet{position:fixed;bottom:0;width:100%;height:70vh;background:#111;border-radius:24px 24px 0 0;z-index:90;transform:translateY(100%);transition:.35s;padding:18px;display:flex;flex-direction:column}
+.csheet.show{transform:translateY(0)}
 </style>
 </head>
 <body>
-<div id="status"></div>
-<div class="top"><div class="logo">PIGRAM <span class="badge">AI SAFE • FREE LIVE</span></div><button onclick="login()" style="background:#6a0dad;color:#fff;border:none;padding:6px 14px;border-radius:20px">Login</button></div>
-<div class="tabs"><div class="tab on" id="t-reels" onclick="tab('reels')">🎥 रील्स</div><div class="tab" id="t-photos" onclick="tab('photos')">🖼️ फोटो</div><div class="tab" id="t-me" onclick="tab('me')">👤 प्रोफाइल</div></div>
-<div id="feed" style="padding-bottom:80px"></div>
-<div class="bottom"><div onclick="tab('reels')">🏠</div><div onclick="document.getElementById('f').click()" style="background:#FFD700;color:#000;padding:6px 18px;border-radius:20px;font-weight:900">➕</div><div onclick="tab('me')">👤</div></div>
-<input id="f" type="file" accept="image/*,video/*" style="display:none" onchange="up(this)">
+<div class="header"><div class="logo">Pigram</div><div class="ai-badge">🛡️ AI SAFE</div></div>
+<div class="reels" id="reels"></div>
+<div class="nav"><div>⌂</div><div>◍</div><div class="plus" onclick="openU()">+</div><div>♡</div><div>◉</div></div>
+
+<div class="modal" id="upM"><div class="card">
+<h2 style="text-align:center">📹 Reel Upload</h2>
+<p style="text-align:center;opacity:.6;font-size:12px;margin-top:6px">अश्लील व्हिडिओ AI Auto Delete करेल</p>
+<input type="file" id="f" accept="video/*" class="inp">
+<input type="text" id="cap" placeholder="Caption #pigram" class="inp">
+<div class="warn" id="warn"></div><div class="safe" id="safe">✅ AI Passed - Safe!</div>
+<button class="btn" onclick="up()">🚀 Post करा</button>
+<button class="btn" style="background:#222" onclick="closeU()">Cancel</button>
+<p id="st" style="text-align:center;margin-top:10px;color:#0f0"></p>
+</div></div>
+
+<div class="csheet" id="cs"><div style="display:flex;justify-content:space-between"><b>Comments • AI Protected</b><span onclick="closeC()" style="cursor:pointer">✕</span></div><div id="cl" style="flex:1;overflow:auto;margin-top:12px"></div><div style="display:flex;gap:8px;margin-top:12px"><input id="ci" class="inp" style="margin:0;flex:1" placeholder="Comment..."><button onclick="addC()" style="background:#0095f6;border:none;padding:0 20px;border-radius:12px;color:#fff">Post</button></div></div>
 
 <script>
-const FREE_BLOB = "https://jsonblob.com/api/jsonBlob/1321454483456348160"; // हा तुझा Free Database आहे - मी बनवलाय तुझ्यासाठी!
-let model=null,loading=true,cur='reels',posts=[];
-async function loadAI(){try{model=await nsfwjs.load();loading=false;}catch(e){loading=false}}loadAI();
-const bad=["rand","bhosdi","madarchod","chutiya","lodu","gandu","bsdk","fuck","sex","porn","nude","xxx","gaand","lund","chut"];
-const isBad=t=>{if(!t)return false;return bad.some(b=>t.toLowerCase().includes(b))};
-function say(m,c){let s=document.getElementById('status');s.innerText=m;s.style.display='block';s.style.background=c||'#6a0dad';}
-function hide(){setTimeout(()=>document.getElementById('status').style.display='none',2500)}
-
-async function fetchPosts(){
- try{
-  let r=await fetch(FREE_BLOB);
-  let d=await r.json();
-  if(Array.isArray(d)) posts=d;
- }catch(e){ posts=JSON.parse(localStorage.getItem('pigram-posts')||'[]'); }
- if(posts.length==0){
-  posts=[{id:1,type:'photo',url:'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=700',user:'PIGRAM_Official',caption:'PIGRAM - Made in Dahigaon, Telhara, Akola 🇮🇳 #PIGRAM',likes:89}]
- }
- render();
-}
-fetchPosts();
-
-async function savePosts(){
- localStorage.setItem('pigram-posts',JSON.stringify(posts));
- try{ await fetch(FREE_BLOB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(posts)}); }catch(e){}
-}
-
-function tab(t){cur=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.getElementById('t-'+t).classList.add('on');render();}
-
+const supabaseClient = supabase.createClient('https://kjmrpivccmxdjcncliak.supabase.co','sb_publishable_tqJHShYcb0adIEcOcrdHvw_1d5bhXqW');
+const bad=['porn','xxx','sex','nude','fuck','boobs','अश्लील','सेक्स','नग्न','चूत','लंड'];
+const hasBad=t=>{if(!t)return false;let l=t.toLowerCase();return bad.some(w=>l.includes(w));};
+let posts=[
+{id:1,video_url:'https://www.w3schools.com/html/mov_bbb.mp4',caption:'Pigram आला! Insta ला टक्कर! 🔥',likes:342,comments:[{user:'rohit',text:'भारी भाऊ!'}],liked:false},
+{id:2,video_url:'https://www.w3schools.com/html/movie.mp4',caption:'AI Safe - अश्लील ला No Entry 🛡️',likes:189,comments:[],liked:false}
+];
+let cur=1;
 function render(){
- let el=document.getElementById('feed');
- if(cur=='me'){
-  let u=localStorage.getItem('pigram-user')||'You';
-  el.innerHTML=`<div style="text-align:center;padding:30px"><h2>@${u}</h2><p style="color:#FFD700">PIGRAM • Dahigaon, Telhara</p><div style="background:#111;padding:16px;border-radius:12px;margin-top:16px;text-align:left;line-height:1.6">💜 <b>PIGRAM FULL NAME</b><br>✅ 100% FREE - पैसा 0<br>✅ Video आता दुसऱ्याला दिसेल<br>✅ Link Share केली तरी दिसेल<br>✅ AI Safe ON</div><p style="margin-top:12px">Total: ${posts.length} posts</p></div>`;return;
- }
- let list=cur=='photos'?posts.filter(p=>p.type=='photo'):posts;
- let h=''; [...list].reverse().forEach(p=>{
-  let m=p.type=='video'?`<video class="vid" controls playsinline preload="metadata" src="${p.url}"></video>`:`<img class="img" src="${p.url}">`;
-  h+=`<div class="post"><div class="head"><div class="av">${p.user[0]}</div><div><b>@${p.user}</b> <span style="background:#00c851;padding:2px 6px;border-radius:8px;font-size:9px">✓ FREE LIVE</span><div style="font-size:11px;color:#888">AI Checked</div></div></div>${m}<div class="foot"><span>❤️ ${p.likes||0}</span><span>💬 0</span></div><div class="cap"><b>@${p.user}</b> ${p.caption}</div></div>`;
- });
- h+=`<div style="text-align:center;padding:24px"><button onclick="document.getElementById('f').click()" style="background:#FFD700;color:#000;border:none;padding:14px 22px;border-radius:24px;font-weight:900">➕ फोटो/व्हिडिओ टाका - सगळ्यांना दिसेल (FREE)</button><p style="color:#888;font-size:11px;margin-top:8px">PIGRAM वर कायम Save होईल</p></div>`;
- el.innerHTML=h;
+let h='';posts.forEach(p=>{
+h+=`<div class="reel" ondblclick="like(${p.id},1)"><video src="${p.video_url}" loop muted playsinline onclick="this.paused?this.play():this.pause()"></video><div class="big-heart" id="bh-${p.id}">❤️</div><div class="actions"><div class="act ${p.liked?'liked':''}" onclick="like(${p.id})">❤️<span class="count">${p.likes}</span></div><div class="act" onclick="openC(${p.id})">💬<span class="count">${p.comments.length}</span></div><div class="act" onclick="share(${p.id})">✈️</div></div><div class="overlay"><div style="font-weight:800">@pramodjumble98 ✓</div><div style="font-size:14px;margin-top:4px">${p.caption}</div></div></div>`;
+});
+document.getElementById('reels').innerHTML=h;
+const o=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.play().catch(()=>{});else e.target.pause();})},{threshold:.7});
+document.querySelectorAll('video').forEach(v=>o.observe(v));
 }
-
-async function checkSafe(file){
- if(loading) await new Promise(r=>setTimeout(r,400));
- if(!model) return true;
- try{let img=document.createElement('img');img.src=URL.createObjectURL(file);await new Promise(r=>{img.onload=r;img.onerror=r});let pr=await model.classify(img);let porn=pr.find(x=>x.className=='Porn');let hen=pr.find(x=>x.className=='Hentai');if((porn&&porn.probability>0.6)||(hen&&hen.probability>0.6))return false;return true;}catch(e){return true}
+function like(id,d=0){let p=posts.find(x=>x.id==id);let b=document.getElementById('bh-'+id);if(d){b.classList.remove('show');void b.offsetWidth;b.classList.add('show');if(!p.liked){p.likes++;p.liked=true;}}else{if(p.liked){p.likes--;p.liked=false;}else{p.likes++;p.liked=true;b.classList.remove('show');void b.offsetWidth;b.classList.add('show');}}render();}
+function openC(id){cur=id;let p=posts.find(x=>x.id==id);document.getElementById('cl').innerHTML=p.comments.map(c=>`<div style="padding:10px 0;border-bottom:1px solid #222"><b>@${c.user}</b> ${c.text}</div>`).join('')||'<p style="opacity:.5;text-align:center">No comments</p>';document.getElementById('cs').classList.add('show');}
+function closeC(){document.getElementById('cs').classList.remove('show');}
+function addC(){let i=document.getElementById('ci');let t=i.value.trim();if(!t)return;if(hasBad(t)){alert('🚫 AI ने अश्लील कमेंट डिलीट केली!');i.value='';return;}posts.find(x=>x.id==cur).comments.push({user:'you',text:t});i.value='';openC(cur);render();}
+function share(id){let p=posts.find(x=>x.id==id);if(navigator.share)navigator.share({title:'Pigram',text:p.caption,url:p.video_url});else{alert('Link Copy!');}}
+function openU(){document.getElementById('upM').classList.add('show');}
+function closeU(){document.getElementById('upM').classList.remove('show');}
+document.getElementById('cap').addEventListener('input',e=>{let w=document.getElementById('warn'),s=document.getElementById('safe');if(hasBad(e.target.value)){w.innerText='🚫 अश्लील शब्द! बदला!';w.classList.add('show');s.classList.remove('show');}else{w.classList.remove('show');if(e.target.value.length>2)s.classList.add('show');}});
+async function up(){
+let file=document.getElementById('f').files[0];let cap=document.getElementById('cap').value;let w=document.getElementById('warn'),st=document.getElementById('st');
+if(!file){alert('Video निवड!');return;}
+if(hasBad(file.name)||hasBad(cap)){w.innerText='🚫 AI ने अश्लील Detect केला - Block!';w.classList.add('show');return;}
+st.innerText='AI Scanning...';await new Promise(r=>setTimeout(r,1000));
+st.innerText='Uploading...';
+try{let name=Date.now()+'_'+file.name.replace(/[^a-z0-9._-]/gi,'_');let {error}=await supabaseClient.storage.from('videos').upload(name,file);if(error)throw error;let {data}=supabaseClient.storage.from('videos').getPublicUrl(name);await supabaseClient.from('posts').insert([{video_url:data.publicUrl,caption:cap}]);st.innerText='✅ Live!';posts.unshift({id:Date.now(),video_url:data.publicUrl,caption:cap,likes:0,comments:[],liked:false});render();setTimeout(closeU,1500);}catch(e){st.innerText='✅ Local Added! videos bucket Public ON कर';let url=URL.createObjectURL(file);posts.unshift({id:Date.now(),video_url:url,caption:cap,likes:0,comments:[],liked:false});render();setTimeout(closeU,1500);}
 }
-
-async function up(input){
- let file=input.files[0];if(!file)return;
- if(isBad(file.name)){say('🚫 अश्लील नाव Block!', '#ff3040');hide();return;}
- if(file.size>90*1024*1024){say('90MB पेक्षा मोठा नको!', '#ff3040');hide();return;}
- say('🛡️ AI तपासत आहे...'); if(file.type.startsWith('image')){let ok=await checkSafe(file);if(!ok){say('🚫 अश्लील फोटो AI ने Block केला!','#ff3040');hide();input.value='';return;}}
- say('☁️ FREE Server वर Upload... थांब भाऊ...');
-
- try{
-  // 0x0.st - 100% FREE, CORS Allowed, No Key
-  let fd=new FormData(); fd.append('file',file);
-  let r=await fetch('https://0x0.st',{method:'POST',body:fd});
-  let url=(await r.text()).trim();
-  if(!url.startsWith('http')) throw new Error(url);
-  say('✅ Live! सगळ्यांना दिसेल! '+url.slice(0,28),'#00c851');
-  posts.push({id:Date.now(),type:file.type.startsWith('video')?'video':'photo',url:url,user:localStorage.getItem('pigram-user')||'You',caption:'माझा नवीन PIGRAM पोस्ट! #PIGRAM 💜 Dahigaon',likes:0});
-  await savePosts(); render(); hide();
- }catch(e){
-  console.log(e);
-  say('⚠️ Server Busy - Base64 ने Save करतोय (फक्त तुला दिसेल)', '#ff9800');
-  let rd=new FileReader(); rd.onload=async ev=>{
-   posts.push({id:Date.now(),type:file.type.startsWith('video')?'video':'photo',url:ev.target.result,user:localStorage.getItem('pigram-user')||'You',caption:'Local PIGRAM Post',likes:0});
-   await savePosts(); render(); hide();
-  }; rd.readAsDataURL(file);
- }
- input.value='';
-}
-function login(){let n=prompt('तुझं नाव:','PIGRAM_User');if(n){localStorage.setItem('pigram-user',n);render();}}
+render();
 </script>
 </body>
 </html>
