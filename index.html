@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html lang="mr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PiGram Bharat - Web3 + AI</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-[#06040f] text-white flex justify-center p-4">
-<!-- तुझा पूर्ण App इथे आहे - वरची फाईलच आहे -->
-<!DOCTYPE html
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PiGram Bharat</title>
+<style>body{background:#000;color:#fff;font-family:sans-serif;text-align:center;padding:20px}video{width:100%;max-width:400px;border-radius:16px}button{background:#ffd700;border:0;padding:12px;border-radius:10px;font-weight:800;width:100%;margin-top:10px}</style>
+</head><body>
+<h2>PiGram <span style="color:#ffd700">Bharat</span> 🇮🇳</h2>
+<p>🛡️ AI SAFE • 100% FREE • Telhara, Akola</p>
+<video id="v" controls src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
+<p>आयुष्यात जर सगळं मिळत गेलं असतं तर कमवायची किंमत कधीच कळली नसती ❤️</p>
+<button onclick="document.getElementById('v').play()">▶️ Video Play करा</button>
+<br><br><input type="file" accept="video/*" id="f" style="width:100%">
+<button onclick="up()">📤 माझा Video टाका</button>
+<p id="m"></p>
+<script>
+function up(){let f=document.getElementById('f').files[0];if(!f){document.getElementById('m').innerText='आधी Video निवडा!';return}let u=URL.createObjectURL(f);document.getElementById('v').src=u;document.getElementById('v').play();document.getElementById('m').innerText='✅ Video Post झाला! Play होतोय!';}
+</script>
+</body></html>
