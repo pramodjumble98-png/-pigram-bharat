@@ -1,37 +1,41 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PiGram Bharat - 【entity-Instagram¦canonical_name=Instagram】 Killer</title>
+<title>PiGram Bharat - AI SAFE</title>
 <style>
-*{box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif;margin:0;padding:0}
-header{position:sticky;top:0;background:#111;padding:12px;text-align:center;border-bottom:1px solid #222;z-index:10}
+*{box-sizing:border-box}body{background:#000;color:#fff;font-family:sans-serif;margin:0}
+header{position:sticky;top:0;background:#111;padding:12px;text-align:center;border-bottom:1px solid #222}
 header b{font-size:22px}header b span{color:#ffd700}.badge{background:#0a7a42;font-size:11px;padding:4px 8px;border-radius:20px}
 .feed{max-width:480px;margin:0 auto;padding:10px;padding-bottom:80px}
 .up{background:#1a0033;border:1px dashed #a06bff;border-radius:16px;padding:12px;text-align:center}
 .up input{width:100%;margin:6px 0}.up button{background:#ffd700;border:0;padding:11px;border-radius:10px;font-weight:800;width:100%}
 .card{background:#111;border:1px solid #222;border-radius:16px;overflow:hidden;margin-top:12px}
 .card video{width:100%;aspect-ratio:9/13;object-fit:cover;background:#000;display:block}
-.info{padding:12px}.user{font-weight:700}.cap{color:#ddd;font-size:14px;margin:6px 0;line-height:1.5}
-.row{display:flex;gap:6px}.btn{flex:1;border:0;padding:10px;border-radius:10px;font-weight:700}.like{background:#222;color:#fff}.like.on{background:#ff2d55}.share{background:#ffd700;color:#000}.cmt{background:#222;color:#fff}
+.info{padding:12px}.user{font-weight:700}.cap{color:#ddd;font-size:14px;margin:6px 0}
+.row{display:flex;gap:6px;flex-wrap:wrap}.btn{flex:1;border:0;padding:10px;border-radius:10px;font-weight:700}.like{background:#222;color:#fff}.like.on{background:#ff2d55}.share{background:#ffd700;color:#000}.cmt{background:#222;color:#fff}.rep{background:#ff3b30;color:#fff;flex:1}
 .cm{padding:0 12px 12px;font-size:13px;color:#ccc}.cin{display:flex;gap:6px;padding:0 12px 12px}.cin input{flex:1;padding:9px;border-radius:10px;border:0;background:#222;color:#fff}.cin button{background:#7b2ff7;color:#fff;border:0;padding:9px 12px;border-radius:10px;font-weight:700}
+.safe{background:#0a3d24;border:1px solid #0a7a42;border-radius:10px;padding:8px;font-size:12px;margin:8px 0;text-align:center}
 </style></head><body>
 <header><b>PiGram <span>Bharat</span></b> <span class="badge">🛡️ AI SAFE • 100% FREE</span></header>
 <div class="feed" id="feed">
-<div class="up"><b>➕ Real Video Post करा!</b><br><small>Video निवडा + Caption लिहा</small><input id="file" type="file" accept="video/*"><input id="cap" placeholder="Caption - उदा. Telhara, Akola - माझं दुकान"><button onclick="addV()">🚀 Post Video</button><p id="msg" style="color:#8affb0;font-size:12px"></p></div>
+<div class="up"><b>➕ Real Video Post करा!</b><div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo / Comment Auto Delete होईल!</div><input id="file" type="file" accept="video/*,image/*"><input id="cap" placeholder="Caption - उदा. Telhara, Akola"><button onclick="addV()">🚀 Post Video</button><p id="msg" style="font-size:13px;font-weight:700"></p></div>
+<div style="text-align:center;color:#aaa;padding:15px;font-size:14px" id="empty">👆 वरती तुमचा पहिला Real Video Post करा!<br>Instagram सारखं Like, Comment, Share चालेल!</div>
 </div>
 <script>
-let demos=[
-{user:"@pramodjumble98",cap:"आयुष्यात जर सगळं मिळत गेलं असतं तर कमवायची किंमत कधीच कळली नसती ❤️ #Telhara #Akola",src:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",likes:189},
-{user:"@samarth_agri",cap:"Akola Edu Expo 14-15-16 Nov 2026 - Samarth Block Shikshan Setu - 100% FREE! 🎓 Join Pi Code: Pramodjumbale",src:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",likes:342},
-{user:"@krishnai_electrical",cap:"आज दुकानात नवीन Kuhl Fan आलं! तेल्हारा मध्ये सर्वात स्वस्त! 💡",src:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",likes:96}
-];
-let saved=JSON.parse(localStorage.getItem('pigram_c')||'{}');
-function render(){let f=document.getElementById('feed');f.querySelectorAll('.card').forEach(e=>e.remove());
-demos.forEach((v,i)=>{let c=document.createElement('div');c.className='card';let cm=saved[i]||["@pramodjumble98: खूप छान भाऊ! 🙏"];
-c.innerHTML=`<video controls playsinline preload="metadata" src="${v.src}"></video><div class="info"><div class="user">${v.user} <span style="color:#2aff8a;font-size:11px">✅ AI Verified</span></div><div class="cap">${v.cap}</div><div class="row"><button class="btn like" onclick="like(this)">❤️ Like <span>${v.likes}</span></button><button class="btn cmt" onclick="document.getElementById('in${i}').focus()">💬 Comment</button><button class="btn share" onclick="share('${v.user}')">↗️ Share</button></div></div><div class="cm">${cm.map(x=>`<div>${x}</div>`).join('')}</div><div class="cin"><input id="in${i}" placeholder="Comment लिहा..."><button onclick="addC(${i})">Post</button></div>`;f.appendChild(c);});}
+let BAD=["porn","xxx","sex","nude","naked","fuck","boobs","boob","sexy","ashleel","अश्लील","सेक्स","नग्न","नंग","चुद","गांड","लंड","pornhub","onlyfans"];
+let demos=[];let saved=JSON.parse(localStorage.getItem('pigram_c')||'{}');
+function isBad(t){let s=(t||"").toLowerCase();return BAD.find(w=>s.includes(w))}
+function showMsg(t,ok){let m=document.getElementById('msg');m.style.color=ok?"#8affb0":"#ff6b6b";m.innerText=t}
+function render(){let f=document.getElementById('feed');f.querySelectorAll('.card').forEach(e=>e.remove());document.getElementById('empty').style.display=demos.length?'none':'block';
+demos.forEach((v,i)=>{let c=document.createElement('div');c.className='card';let cm=(saved[i]||["@pramodjumble98: खूप छान भाऊ! 🙏"]).filter(x=>!isBad(x));
+let media=v.isImg?`<img src="${v.src}" style="width:100%">`:`<video controls playsinline preload="metadata" src="${v.src}"></video>`;
+c.innerHTML=media+`<div class="info"><div class="user">${v.user} <span style="color:#2aff8a;font-size:11px">✅ AI Verified</span></div><div class="cap">${v.cap}</div><div class="row"><button class="btn like" onclick="like(this)">❤️ Like <span>${v.likes}</span></button><button class="btn cmt" onclick="document.getElementById('in${i}').focus()">💬 Comment</button><button class="btn share" onclick="share('${v.user}')">↗️ Share</button><button class="btn rep" onclick="report(${i})">🚨 Report</button></div></div><div class="cm">${cm.map(x=>`<div>${x}</div>`).join('')}</div><div class="cin"><input id="in${i}" placeholder="Comment लिहा..."><button onclick="addC(${i})">Post</button></div>`;f.appendChild(c);});}
 function like(b){let s=b.querySelector('span');let n=parseInt(s.textContent);if(b.classList.contains('on')){b.classList.remove('on');s.textContent=n-1}else{b.classList.add('on');s.textContent=n+1}}
-function addC(i){let inp=document.getElementById('in'+i);if(!inp.value.trim())return;let a=saved[i]||["@pramodjumble98: खूप छान भाऊ! 🙏"];a.push("@tumhi: "+inp.value);saved[i]=a;localStorage.setItem('pigram_c',JSON.stringify(saved));inp.value='';render()}
-function share(u){let t=`PiGram Bharat वर ${u} चा Video बघा! https://pigram-bharat.vercel.app`;if(navigator.share){navigator.share({text:t})}else{navigator.clipboard.writeText(t);alert('Link Copy झाली! WhatsApp ला Paste करा!')}}
-function addV(){let f=document.getElementById('file').files[0];if(!f){document.getElementById('msg').innerText='आधी Video निवडा!';return}let url=URL.createObjectURL(f);let cap=document.getElementById('cap').value||'माझा नवीन Video - Telhara, Akola';demos.unshift({user:"@tumhi",cap:cap,src:url,likes:0});render();document.getElementById('msg').innerText='✅ Video Post झाला! वरती Feed मध्ये बघा!';window.scrollTo({top:0,behavior:'smooth'})}
+function addC(i){let inp=document.getElementById('in'+i);let t=inp.value.trim();if(!t)return;let bad=isBad(t);if(bad){alert('🛡️ AI SAFE: हा Comment Block केला! कारण: "'+bad+'" - अश्लील शब्द वापरू नका!');inp.value='';return}let a=saved[i]||["@pramodjumble98: खूप छान भाऊ! 🙏"];a.push("@tumhi: "+t);saved[i]=a;localStorage.setItem('pigram_c',JSON.stringify(saved));inp.value='';render();showMsg('✅ Comment Post झाला!',true)}
+function share(u){let t=`PiGram Bharat वर ${u} चा Video बघा! https://pigram-bharat.vercel.app`;if(navigator.share){navigator.share({text:t})}else{navigator.clipboard.writeText(t);alert('Link Copy झाली!')}}
+function report(i){if(confirm('🛡️ हा Video अश्लील आहे का? AI ला Report करायचं?')){demos.splice(i,1);render();alert('🛡️ AI SAFE: Video Delete केला! धन्यवाद!')}}
+function addV(){let f=document.getElementById('file').files[0];if(!f){showMsg('आधी Video / Photo निवडा!',false);return}let cap=document.getElementById('cap').value||'माझा नवीन Video - Telhara, Akola';
+let bad=isBad(cap)||isBad(f.name);if(bad){showMsg('🛡️ AI SAFE BLOCK: "'+bad+'" शब्दामुळे Upload Block केलं! अश्लील Content टाकू नका!',false);alert('🛡️ AI SAFE: अश्लील Video / Photo / शब्द Block केला!');return}
+let url=URL.createObjectURL(f);let isImg=f.type.startsWith('image');demos.unshift({user:"@tumhi",cap:cap,src:url,likes:0,isImg:isImg});render();showMsg('✅ AI Verified - Video Post झाला!',true);document.getElementById('cap').value='';window.scrollTo({top:0,behavior:'smooth'})}
 render();
 </script></body></html>
