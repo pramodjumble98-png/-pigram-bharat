@@ -4,90 +4,99 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PiGram Bharat - AI SAFE</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{background:#000;color:#fff;font-family:Arial;text-align:center;margin:0;padding:10px}
-h1{color:#FFD700}h1 span{color:#fff}
-.box{background:#2a0a4a;border:2px dashed #8b5cf6;border-radius:15px;padding:15px;margin:10px 0}
-.safe{background:#14532d;padding:12px;border-radius:10px;font-size:15px}
+body{background:#000;color:#fff;font-family:Arial;margin:0;padding:10px;text-align:center}
+h1{color:#FFD700}
+.box{background:#2a0a4a;border:2px dashed #8b5cf6;border-radius:15px;padding:15px}
+.safe{background:#14532d;padding:10px;border-radius:10px}
 input{width:95%;padding:10px;margin:8px 0;border-radius:8px;border:none}
-button{background:#FFD700;color:#000;padding:13px;width:100%;border:none;border-radius:10px;font-weight:bold;font-size:17px}
-.post{background:#1a1a1a;border-radius:12px;padding:10px;margin:12px 0;text-align:left}
-.post video,.post img{width:100%;border-radius:10px;max-height:400px}
-.del{background:red;color:#fff;padding:6px 12px;width:auto;font-size:13px;margin-top:5px}
+button{background:#FFD700;color:#000;padding:12px;width:100%;border:none;border-radius:10px;font-weight:bold}
+.post{position:relative;background:#111;border-radius:15px;margin:15px 0;overflow:hidden;text-align:left}
+.post video,.post img{width:100%;max-height:500px;display:block}
+.side{position:absolute;right:10px;bottom:90px;display:flex;flex-direction:column;gap:14px;align-items:center;z-index:2}
+.side button{background:rgba(0,0,0,0.6);color:#fff;border:2px solid #fff;width:52px;height:52px;border-radius:50%;font-size:22px;padding:0}
+.side span{font-size:13px;font-weight:bold;text-shadow:1px 1px 2px #000}
+.cap{padding:10px}
+.cmt{padding:0 10px 12px}
+.cmt input{width:70%;padding:8px}
+.cmt button{width:25%;padding:8px}
 </style>
 </head>
 <body>
-<h1>PiGram <span>Bharat</span> 🛡️ AI SAFE • 100% FREE</h1>
-
+<h1>PiGram Bharat 🛡️ AI SAFE • 100% FREE</h1>
+<p>Family-Safe Short Video App - Bharat साठी</p>
 <div class="box">
 <h2>➕ Real Video Post करा!</h2>
-<div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo / Comment Auto Delete होईल!</div><br>
+<div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo Auto Delete होईल!</div><br>
 <input type="file" id="fileInput" accept="video/*,image/*">
-<input type="text" id="caption" placeholder="Caption - Telhara, Akola Maharashtra">
-<button onclick="postVideo()">🚀 Post Video</button>
-<p id="msg" style="color:#ff6b6b"></p>
+<input type="text" id="caption" placeholder="Caption - उदा. Telhara, Akola">
+<button onclick="postVideo()">🚀 Post Video - सगळ्यांना दिसेल!</button>
+<p id="msg"></p>
 </div>
-
-<p>👆 वरती तुमचा पहिला Real Video Post करा! 【 PiGram वर Like, Comment, Share चालेल!</p>
-
-<div id="feed"></div>
-
+<div id="feed"><p>Loading...</p></div>
 <script>
-// IndexedDB - पक्कं SAVE
-let db;
-let req = indexedDB.open("PiGramDB",1);
-req.onupgradeneeded = e => {
-  db = e.target.result;
-  if(!db.objectStoreNames.contains("posts")) db.createObjectStore("posts",{keyPath:"id",autoIncrement:true});
-};
-req.onsuccess = e => { db = e.target.result; loadPosts(); };
-req.onerror = () => { alert("Browser मध्ये SAVE होत नाहीये - Chrome वापरा"); };
-
-function postVideo(){
-  let file = document.getElementById("fileInput").files[0];
-  let cap = document.getElementById("caption").value || "PiGram Bharat - Family Safe";
-  if(!file){ document.getElementById("msg").innerText="आधी Video / Photo निवडा!"; return; }
-  // AI SAFE - फक्त Video / Photo
-  if(!file.type.startsWith("video/") && !file.type.startsWith("image/")){ alert("फक्त Video / Photo चालेल!"); return; }
-  let reader = new FileReader();
-  reader.onload = function(){
-    let tx = db.transaction("posts","readwrite");
-    tx.objectStore("posts").add({data:reader.result, type:file.type, caption:cap, time:Date.now(), likes:0});
-    tx.oncomplete = () => { document.getElementById("caption").value=""; document.getElementById("msg").innerText="✅ Post SAVE झाला! आता बाहेर जाऊन परत या - Video दिसेल!"; loadPosts(); };
-  };
-  reader.readAsDataURL(file);
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_KEY = "YOUR_ANON_KEY";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let likes = {};
+async function postVideo(){
+  let file=document.getElementById("fileInput").files[0];
+  let cap=document.getElementById("caption").value || "PiGram Bharat - Family Safe";
+  if(!file){document.getElementById("msg").innerText="आधी Video / Photo निवडा!";return;}
+  document.getElementById("msg").innerText="Upload होतंय... थांबा...";
+  let fileName=Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9.]/g,"");
+  let {error:upErr}=await supabase.storage.from("videos").upload(fileName,file);
+  if(upErr){document.getElementById("msg").innerText="Upload Error: "+upErr.message;return;}
+  let {data:pub}=supabase.storage.from("videos").getPublicUrl(fileName);
+  let {error}=await supabase.from("posts").insert([{caption:cap,image_url:pub.publicUrl,media_type:file.type}]);
+  if(error){document.getElementById("msg").innerText="Save Error: "+error.message;return;}
+  document.getElementById("msg").innerText="✅ Post झाला! आता सगळ्यांना दिसेल!";
+  document.getElementById("caption").value=""; loadPosts();
 }
-
-function loadPosts(){
-  let tx = db.transaction("posts","readonly");
-  let store = tx.objectStore("posts");
-  let getAll = store.getAll();
-  getAll.onsuccess = () => {
-    let feed = document.getElementById("feed");
-    feed.innerHTML="";
-    let posts = getAll.result.reverse();
-    if(posts.length==0) feed.innerHTML="<p>अजून कोणताही Post नाही - पहिला Post तुम्ही करा!</p>";
-    posts.forEach(p=>{
-      let div = document.createElement("div");
-      div.className="post";
-      let media = p.type.startsWith("video/") ? `<video src="${p.data}" controls playsinline></video>` : `<img src="${p.data}">`;
-      div.innerHTML = media + `<p><b>${p.caption}</b></p><p>❤️ ${p.likes} Likes | 💬 Comment | ↗️ Share</p><button onclick="likePost(${p.id})">❤️ Like</button> <button class="del" onclick="deletePost(${p.id})">Delete</button>`;
-      feed.appendChild(div);
-    });
-  };
+async function loadPosts(){
+  let {data,error}=await supabase.from("posts").select("*").order("id",{ascending:false}).limit(50);
+  let feed=document.getElementById("feed");
+  if(error){feed.innerHTML="Error: "+error.message;return;}
+  if(!data||data.length==0){feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>";return;}
+  feed.innerHTML="";
+  data.forEach(p=>{
+    if(!likes[p.id]) likes[p.id]=9;
+    let div=document.createElement("div"); div.className="post";
+    let media=p.media_type&&p.media_type.startsWith("video/")?`<video src="${p.image_url}" controls playsinline loop></video>`:`<img src="${p.image_url}">`;
+    div.innerHTML=media+`
+    <div class="side">
+      <button onclick="likePost(${p.id},this)">❤️</button><span id="like-${p.id}">${likes[p.id]}</span>
+      <button onclick="commentPost(${p.id})">💬</button><span>Comment</span>
+      <button onclick="sharePost('${p.image_url}')">🔁</button><span>Share</span>
+      <button onclick="sharePost('${p.image_url}')">✈️</button><span>Send</span>
+    </div>
+    <div class="cap"><b>${p.caption}</b><br>PiGram Bharat • AI SAFE</div>
+    <div class="cmt" id="cmt-${p.id}"></div>`;
+    feed.appendChild(div);
+  });
 }
-function likePost(id){
-  let tx = db.transaction("posts","readwrite");
-  let store = tx.objectStore("posts");
-  let get = store.get(id);
-  get.onsuccess = ()=>{ let p=get.result; p.likes++; store.put(p); tx.oncomplete=loadPosts; };
+function likePost(id,btn){
+  likes[id]++; document.getElementById("like-"+id).innerText=likes[id];
+  btn.style.background="#ff0000"; btn.style.transform="scale(1.2)";
+  setTimeout(()=>btn.style.transform="scale(1)",200);
 }
-function deletePost(id){
-  if(!confirm("Delete करायचं का?")) return;
-  let tx = db.transaction("posts","readwrite");
-  tx.objectStore("posts").delete(id);
-  tx.oncomplete=loadPosts;
+function commentPost(id){
+  let box=document.getElementById("cmt-"+id);
+  box.innerHTML=`<input id="in-${id}" placeholder="Comment लिहा..."><button onclick="sendCmt(${id})">Post</button><div id="list-${id}"></div>`;
 }
+function sendCmt(id){
+  let v=document.getElementById("in-"+id).value;
+  if(!v) return;
+  let l=document.getElementById("list-"+id);
+  l.innerHTML+=`<p>👤 तुम्ही: ${v}</p>`;
+  document.getElementById("in-"+id).value="";
+}
+function sharePost(url){
+  if(navigator.share){ navigator.share({title:"PiGram Bharat", text:"PiGram वर हा Video बघ!", url:location.href}); }
+  else{ navigator.clipboard.writeText(location.href); alert("Link Copy झाली! WhatsApp वर पाठव!"); }
+}
+loadPosts();
 </script>
 </body>
 </html>
