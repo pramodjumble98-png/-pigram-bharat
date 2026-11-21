@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PiGram Bharat - AI SAFE</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center;margin:0;padding:10px}
 h1{color:#FFD700}
@@ -27,88 +28,104 @@ button{background:#FFD700;color:#000;padding:12px;width:100%;border:none;border-
 <div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo Auto Delete होईल!</div><br>
 <input type="file" id="fileInput" accept="video/*,image/*">
 <input type="text" id="caption" placeholder="Caption - उदा. Telhara, Akola">
-<button onclick="postVideo()">🚀 Post Video</button>
+<button onclick="postVideo()">🚀 Post Video - सर्वांना दिसेल!</button>
 <p id="msg" style="color:yellow"></p>
+<p id="mode" style="color:#aaa;font-size:13px">Checking...</p>
 </div>
 <div id="feed"></div>
 <script>
-let db;
+const SUPABASE_URL = "PASTE_TUZI_URL";https://kjmrpivccmxdjcncliak.supabase.co
+const SUPABASE_KEY = "PASTE_TUZI_KEY";sb_publishable_tqJHShYcb0adIEcOcrdHvw_1d5bhXqW
+let supa = null;
+let db = null;
 let likes = {};
-let openReq = indexedDB.open("PiGramDB", 1);
-openReq.onupgradeneeded = function(e){
-  db = e.target.result;
-  if(!db.objectStoreNames.contains("posts")){
-    db.createObjectStore("posts", {keyPath:"id", autoIncrement:true});
-  }
-};
-openReq.onsuccess = function(e){ db = e.target.result; loadPosts(); };
-openReq.onerror = function(){ document.getElementById("msg").innerText = "Browser मध्ये SAVE होत नाही - Chrome वापरा"; };
+try{ supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }catch(e){ supa = null; }
+let openReq = indexedDB.open("PiGramDB",1);
+openReq.onupgradeneeded = function(e){ db=e.target.result; if(!db.objectStoreNames.contains("posts")) db.createObjectStore("posts",{keyPath:"id",autoIncrement:true}); };
+openReq.onsuccess = function(e){ db=e.target.result; loadPosts(); };
 
-function postVideo(){
+async function postVideo(){
   let file = document.getElementById("fileInput").files[0];
   let cap = document.getElementById("caption").value;
   if(!cap) cap = "PiGram Bharat - Family Safe";
-  if(!file){ document.getElementById("msg").innerText = "आधी Video / Photo निवडा!"; return; }
-  if(file.size > 50000000){ document.getElementById("msg").innerText = "Video खूप मोठा आहे - 50MB पेक्षा छोटा Video घ्या!"; return; }
-  document.getElementById("msg").innerText = "SAVE होतंय... थांबा...";
+  if(!file){ document.getElementById("msg").innerText="आधी Video निवडा!"; return; }
+  if(file.size > 50000000){ document.getElementById("msg").innerText="Video खूप मोठा आहे - 50MB पेक्षा छोटा घ्या!"; return; }
+  document.getElementById("msg").innerText="Upload होतंय... थांबा...";
+  // 1. आधी Supabase ला try कर - सर्वांना दिसेल
+  if(supa && SUPABASE_URL.indexOf("supabase.co")!==-1 && SUPABASE_KEY.length > 20){
+    try{
+      let fileName = Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9.]/g,"");
+      let up = await supa.storage.from("videos").upload(fileName, file);
+      if(!up.error){
+        let pub = supa.storage.from("videos").getPublicUrl(fileName);
+        let ins = await supa.from("posts").insert([{caption:cap, image_url:pub.data.publicUrl, media_type:file.type}]);
+        if(!ins.error){
+          document.getElementById("msg").innerText="✅ Post झाला! आता सर्वांना दिसेल!";
+          document.getElementById("caption").value=""; loadPosts(); return;
+        }
+      }
+    }catch(e){}
+    document.getElementById("msg").innerText="Supabase मध्ये अडचण - मोबाईल मध्ये SAVE करतो...";
+  }
+  // 2. Supabase नाही जमलं तर - मोबाईल मध्ये SAVE कर
   let reader = new FileReader();
   reader.onload = function(){
-    let newPost = { data: reader.result, type: file.type, caption: cap, time: Date.now() };
-    let tx = db.transaction("posts", "readwrite");
-    let store = tx.objectStore("posts");
-    let addReq = store.add(newPost);
-    addReq.onsuccess = function(){
-      document.getElementById("msg").innerText = "✅ Post SAVE झाला!";
-      document.getElementById("caption").value = "";
-      loadPosts();
-    };
-    addReq.onerror = function(){ document.getElementById("msg").innerText = "SAVE Error - परत try करा"; };
+    let tx = db.transaction("posts","readwrite");
+    tx.objectStore("posts").add({data:reader.result, type:file.type, caption:cap, time:Date.now()});
+    tx.oncomplete = function(){ document.getElementById("msg").innerText="✅ Post SAVE झाला! (फक्त या मोबाईल मध्ये)"; document.getElementById("caption").value=""; loadPosts(); };
   };
   reader.readAsDataURL(file);
 }
-function loadPosts(){
-  if(!db) return;
-  let tx = db.transaction("posts", "readonly");
-  let getAll = tx.objectStore("posts").getAll();
-  getAll.onsuccess = function(){
-    let feed = document.getElementById("feed");
-    feed.innerHTML = "";
-    let posts = getAll.result.reverse();
-    if(posts.length === 0){ feed.innerHTML = "<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>"; return; }
-    posts.forEach(function(p){
-      if(!likes[p.id]) likes[p.id] = 9;
-      let div = document.createElement("div");
-      div.className = "post";
-      let media = "";
-      if(p.type && p.type.indexOf("video") !== -1){
-        media = '<video src="' + p.data + '" controls playsinline></video>';
-      } else {
-        media = '<img src="' + p.data + '">';
+async function loadPosts(){
+  let feed = document.getElementById("feed");
+  // 1. Supabase मधून बघ
+  if(supa && SUPABASE_URL.indexOf("supabase.co")!==-1 && SUPABASE_KEY.length > 20){
+    try{
+      let res = await supa.from("posts").select("*").order("id",{ascending:false}).limit(50);
+      if(!res.error && res.data){
+        document.getElementById("mode").innerText="🌍 Mode: सर्वांना दिसतंय - Supabase ON";
+        if(res.data.length===0){ feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>"; }
+        else{
+          feed.innerHTML="";
+          res.data.forEach(function(p){
+            if(!likes[p.id]) likes[p.id]=9;
+            let div=document.createElement("div"); div.className="post";
+            let media = (p.media_type && p.media_type.indexOf("video")!==-1) ? '<video src="'+p.image_url+'" controls playsinline></video>' : '<img src="'+p.image_url+'">';
+            div.innerHTML = media + '<div class="side"><button onclick="likePost('+p.id+',this)">❤️</button><span id="like-'+p.id+'">'+likes[p.id]+'</span><button onclick="commentPost('+p.id+')">💬</button><span>Comment</span><button onclick="sharePost()">🔁</button><span>Share</span><button onclick="sharePost()">✈️</button><span>Send</span></div><div class="cap"><b>'+p.caption+'</b></div><div id="cmt-'+p.id+'" style="padding:0 10px 12px"></div>';
+            feed.appendChild(div);
+          });
+        }
+        // खाली मोबाईल वाले पण दाखव
+        loadLocal(false);
+        return;
       }
-      div.innerHTML = media + '<div class="side"><button onclick="likePost(' + p.id + ',this)">❤️</button><span id="like-' + p.id + '">' + likes[p.id] + '</span><button onclick="commentPost(' + p.id + ')">💬</button><span>Comment</span><button onclick="sharePost()">🔁</button><span>Share</span><button onclick="sharePost()">✈️</button><span>Send</span></div><div class="cap"><b>' + p.caption + '</b></div><div id="cmt-' + p.id + '" style="padding:0 10px 12px"></div>';
+    }catch(e){}
+  }
+  document.getElementById("mode").innerText="📱 Mode: फक्त या मोबाईल मध्ये - Supabase OFF - Key / URL चेक करा";
+  loadLocal(true);
+}
+function loadLocal(clearFirst){
+  if(!db) return;
+  let tx=db.transaction("posts","readonly");
+  let g=tx.objectStore("posts").getAll();
+  g.onsuccess=function(){
+    let feed=document.getElementById("feed");
+    if(clearFirst) feed.innerHTML="";
+    let posts=g.result.reverse();
+    if(posts.length===0 && clearFirst) feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>";
+    posts.forEach(function(p){
+      if(!likes["L"+p.id]) likes["L"+p.id]=9;
+      let div=document.createElement("div"); div.className="post";
+      let media = (p.type && p.type.indexOf("video")!==-1) ? '<video src="'+p.data+'" controls playsinline></video>' : '<img src="'+p.data+'">';
+      div.innerHTML = media + '<div class="side"><button onclick="likePost(\'L'+p.id+'\',this)">❤️</button><span id="like-L'+p.id+'">'+likes["L"+p.id]+'</span><button onclick="commentPost(\'L'+p.id+'\')">💬</button><span>Comment</span><button onclick="sharePost()">🔁</button><span>Share</span><button onclick="sharePost()">✈️</button><span>Send</span></div><div class="cap"><b>'+p.caption+'</b></div><div id="cmt-L'+p.id+'" style="padding:0 10px 12px"></div>';
       feed.appendChild(div);
     });
   };
 }
-function likePost(id, btn){
-  likes[id] = likes[id] + 1;
-  document.getElementById("like-" + id).innerText = likes[id];
-  btn.style.background = "#ff0000";
-}
-function commentPost(id){
-  let box = document.getElementById("cmt-" + id);
-  box.innerHTML = '<input id="in-' + id + '" placeholder="Comment लिहा..." style="width:65%;padding:8px;border-radius:8px;border:none"><button onclick="sendCmt(' + id + ')" style="width:30%;padding:8px">Post</button><div id="list-' + id + '"></div>';
-}
-function sendCmt(id){
-  let v = document.getElementById("in-" + id).value;
-  if(!v) return;
-  document.getElementById("list-" + id).innerHTML += "<p>👤 तुम्ही: " + v + "</p>";
-  document.getElementById("in-" + id).value = "";
-}
-function sharePost(){
-  if(navigator.share){ navigator.share({title:"PiGram Bharat", text:"PiGram वर Video बघ!", url:location.href}); }
-  else { navigator.clipboard.writeText(location.href); alert("Link Copy झाली!"); }
-}
+function likePost(id,btn){ likes[id]=likes[id]+1; document.getElementById("like-"+id).innerText=likes[id]; btn.style.background="#ff0000"; }
+function commentPost(id){ let b=document.getElementById("cmt-"+id); b.innerHTML='<input id="in-'+id+'" placeholder="Comment लिहा..." style="width:65%;padding:8px;border-radius:8px;border:none"><button onclick="sendCmt(\''+id+'\')" style="width:30%;padding:8px">Post</button><div id="list-'+id+'"></div>'; }
+function sendCmt(id){ let v=document.getElementById("in-"+id).value; if(!v) return; document.getElementById("list-"+id).innerHTML+="<p>👤 तुम्ही: "+v+"</p>"; document.getElementById("in-"+id).value=""; }
+function sharePost(){ if(navigator.share){ navigator.share({title:"PiGram Bharat", text:"PiGram वर Video बघ!", url:location.href}); } else { navigator.clipboard.writeText(location.href); alert("Link Copy झाली!"); } }
 </script>
 </body>
 </html>
