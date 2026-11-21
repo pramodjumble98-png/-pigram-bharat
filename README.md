@@ -1,4 +1,4 @@
-# PiGram Bharat 🇮🇳 - तेल्हारा, अकोला
+# PiGram Bharat 🇮🇳 - 
 Maharashtra's Own Instagram - AI Safe + Web3 + Pi Coin
 
 🔗 Live: https://pigram-bharat.vercel.app
