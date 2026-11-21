@@ -28,46 +28,87 @@ button{background:#FFD700;color:#000;padding:12px;width:100%;border:none;border-
 <input type="file" id="fileInput" accept="video/*,image/*">
 <input type="text" id="caption" placeholder="Caption - उदा. Telhara, Akola">
 <button onclick="postVideo()">🚀 Post Video</button>
-<p id="msg"></p>
+<p id="msg" style="color:yellow"></p>
 </div>
 <div id="feed"></div>
 <script>
-let db; let likes={};
-let req=indexedDB.open("PiGramDB",1);
-req.onupgradeneeded=e=>{db=e.target.result; if(!db.objectStoreNames.contains("posts")) db.createObjectStore("posts",{keyPath:"id",autoIncrement:true});};
-req.onsuccess=e=>{db=e.target.result; loadPosts();};
+let db;
+let likes = {};
+let openReq = indexedDB.open("PiGramDB", 1);
+openReq.onupgradeneeded = function(e){
+  db = e.target.result;
+  if(!db.objectStoreNames.contains("posts")){
+    db.createObjectStore("posts", {keyPath:"id", autoIncrement:true});
+  }
+};
+openReq.onsuccess = function(e){ db = e.target.result; loadPosts(); };
+openReq.onerror = function(){ document.getElementById("msg").innerText = "Browser मध्ये SAVE होत नाही - Chrome वापरा"; };
+
 function postVideo(){
-  let file=document.getElementById("fileInput").files[0];
-  let cap=document.getElementById("caption").value||"PiGram Bharat - Family Safe";
-  if(!file){document.getElementById("msg").innerText="आधी Video निवडा!";return;}
-  let r=new FileReader();
-  r.onload=function(){
-    let tx=db.transaction("posts","readwrite");
-    tx.objectStore("posts").add({data:r.result,[STRIPPED]
-    tx.oncomplete=()=>{document.getElementById("msg").innerText="✅ Post SAVE झाला!";document.getElementById("caption").value="";loadPosts();};
+  let file = document.getElementById("fileInput").files[0];
+  let cap = document.getElementById("caption").value;
+  if(!cap) cap = "PiGram Bharat - Family Safe";
+  if(!file){ document.getElementById("msg").innerText = "आधी Video / Photo निवडा!"; return; }
+  if(file.size > 50000000){ document.getElementById("msg").innerText = "Video खूप मोठा आहे - 50MB पेक्षा छोटा Video घ्या!"; return; }
+  document.getElementById("msg").innerText = "SAVE होतंय... थांबा...";
+  let reader = new FileReader();
+  reader.onload = function(){
+    let newPost = { data: reader.result, type: file.type, caption: cap, time: Date.now() };
+    let tx = db.transaction("posts", "readwrite");
+    let store = tx.objectStore("posts");
+    let addReq = store.add(newPost);
+    addReq.onsuccess = function(){
+      document.getElementById("msg").innerText = "✅ Post SAVE झाला!";
+      document.getElementById("caption").value = "";
+      loadPosts();
+    };
+    addReq.onerror = function(){ document.getElementById("msg").innerText = "SAVE Error - परत try करा"; };
   };
-  r.readAsDataURL(file);
+  reader.readAsDataURL(file);
 }
 function loadPosts(){
-  let tx=db.transaction("posts","readonly");
-  let g=tx.objectStore("posts").getAll();
-  g.onsuccess=()=>{
-    let feed=document.getElementById("feed"); feed.innerHTML="";
-    let posts=g.result.reverse();
-    if(posts.length==0) feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>";
-    posts.forEach(p=>{
-      if(!likes[p.id]) likes[p.id]=9;
-      let div=document.createElement("div"); div.className="post";
-      let media=p.type.startsWith("video/")?`<video src="${p.data}" controls playsinline></video>`:`<img src="${p.data}">`;
-      div.innerHTML=media+`<div class="side"><button onclick="likePost(${p.id},this)">❤️</button><span id="like-${p.id}">${likes[p.id]}</span><button onclick="commentPost(${p.id})">💬</button><span>Comment</span><button onclick="sharePost()">🔁</button><span>Share</span><button onclick="sharePost()">✈️</button><span>Send</span></div><div class="cap"><b>${p.caption}</b></div><div id="cmt-${p.id}" style="padding:0 10px 12px"></div>`;
+  if(!db) return;
+  let tx = db.transaction("posts", "readonly");
+  let getAll = tx.objectStore("posts").getAll();
+  getAll.onsuccess = function(){
+    let feed = document.getElementById("feed");
+    feed.innerHTML = "";
+    let posts = getAll.result.reverse();
+    if(posts.length === 0){ feed.innerHTML = "<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>"; return; }
+    posts.forEach(function(p){
+      if(!likes[p.id]) likes[p.id] = 9;
+      let div = document.createElement("div");
+      div.className = "post";
+      let media = "";
+      if(p.type && p.type.indexOf("video") !== -1){
+        media = '<video src="' + p.data + '" controls playsinline></video>';
+      } else {
+        media = '<img src="' + p.data + '">';
+      }
+      div.innerHTML = media + '<div class="side"><button onclick="likePost(' + p.id + ',this)">❤️</button><span id="like-' + p.id + '">' + likes[p.id] + '</span><button onclick="commentPost(' + p.id + ')">💬</button><span>Comment</span><button onclick="sharePost()">🔁</button><span>Share</span><button onclick="sharePost()">✈️</button><span>Send</span></div><div class="cap"><b>' + p.caption + '</b></div><div id="cmt-' + p.id + '" style="padding:0 10px 12px"></div>';
       feed.appendChild(div);
     });
   };
 }
-function likePost(id,btn){likes[id]++;document.getElementById("like-"+id).innerText=likes[id];btn.style.background="#ff0000";}
-function commentPost(id){let b=document.getElementById("cmt-"+id);b.innerHTML=`<input id="in-${id}" placeholder="Comment लिहा..." style="width:65%;padding:8px;border-radius:8px;border:none"><button onclick="sendCmt(${id})" style="width:30%;padding:8px">Post</button><div id="list-${id}"></div>`;}
-function sendCmt(id){let v=document.getElementById("in-"+id).value;if(!v)return;document.getElementById("list-"+id).innerHTML+=`<p>👤 तुम्ही: ${v}</p>`;document.getElementById("in-"+id).value="";}
-function sharePost(){if(navigator.share){navigator.share({title:"PiGram Bharat",text:"PiGram वर Video बघ!",url:location.href});}else{navigator.clipboard.writeText(location.href);alert("Link Copy झाली!");}}
+function likePost(id, btn){
+  likes[id] = likes[id] + 1;
+  document.getElementById("like-" + id).innerText = likes[id];
+  btn.style.background = "#ff0000";
+}
+function commentPost(id){
+  let box = document.getElementById("cmt-" + id);
+  box.innerHTML = '<input id="in-' + id + '" placeholder="Comment लिहा..." style="width:65%;padding:8px;border-radius:8px;border:none"><button onclick="sendCmt(' + id + ')" style="width:30%;padding:8px">Post</button><div id="list-' + id + '"></div>';
+}
+function sendCmt(id){
+  let v = document.getElementById("in-" + id).value;
+  if(!v) return;
+  document.getElementById("list-" + id).innerHTML += "<p>👤 तुम्ही: " + v + "</p>";
+  document.getElementById("in-" + id).value = "";
+}
+function sharePost(){
+  if(navigator.share){ navigator.share({title:"PiGram Bharat", text:"PiGram वर Video बघ!", url:location.href}); }
+  else { navigator.clipboard.writeText(location.href); alert("Link Copy झाली!"); }
+}
 </script>
 </body>
 </html>
