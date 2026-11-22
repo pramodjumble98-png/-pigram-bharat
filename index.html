@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PiGram Bharat - Family Safe</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box} body{background:#000;color:#fff;font-family:Arial;margin:0;padding:10px;text-align:center}
-h1{color:#FFD700;margin:5px} .top{background:#111;padding:10px;border-radius:15px}
+h1{color:#FFD700;margin:5px} .top{background:#111;padding:12px;border-radius:15px}
 .box{background:#2a0a4a;border:2px dashed #8b5cf6;border-radius:15px;padding:15px;margin-top:10px}
 .safe{background:#14532d;padding:10px;border-radius:10px;font-weight:bold}
 input{width:95%;padding:12px;margin:8px 0;border-radius:10px;border:none;font-size:15px}
@@ -24,66 +23,65 @@ input{width:95%;padding:12px;margin:8px 0;border-radius:10px;border:none;font-si
 </head>
 <body>
 <h1>PiGram Bharat 🛡️</h1>
-<div class="top"><b>AI SAFE • 100% FREE • Family-Safe</b><br><span style="color:#aaa">शेतकरी • विद्यार्थी • परिवार - भारत साठी</span><br><p id="mode" style="color:yellow">⏳ चालू होतंय...</p></div>
+<div class="top"><b>AI SAFE • 100% FREE • Family-Safe</b><br><p id="mode" style="color:yellow;margin:5px">⏳ चालू होतंय...</p></div>
 
 <div class="box">
 <h2 style="margin:0">➕ नवीन Post करा</h2>
 <div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo Auto Delete</div><br>
 <input type="file" id="fileInput" accept="video/*,image/*">
-<input type="text" id="caption" placeholder="Caption लिहा - उदा. Telhara, Akola - शेती">
+<input type="text" id="caption" placeholder="Caption लिहा - उदा. Telhara, Akola">
 <button class="btn" onclick="postVideo()">🚀 Post करा - सर्वांना दिसेल!</button>
 <button class="btn2" onclick="shareApp()">🔗 App Link सर्वांना पाठवा - Share</button>
 <p id="msg" style="color:#FFE45E;font-weight:bold"></p>
 </div>
-
 <div id="feed"></div>
 
 <script>
 const SUPABASE_URL = "https://kjmrpivccmxdjcncliak.supabase.co";
-const SUPABASE_KEY = sb_publishable_tqJHShYcb0adIEcOcrdHvw_1d5bhXqW
-let supa=null;
+const SUPABASE_KEY = "sb_publishable_tqJHShYcb0adIEcOcrdHvw_1d5bhXqW";
 let likes={};
-try{
-  if(SUPABASE_KEY.length>50){
-    supa=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    document.getElementById("mode").innerText="🌍 सर्वांना दिसतंय - Supabase ON";
-  }else{
-    document.getElementById("mode").innerText="❌ Key टाकली नाही - GitHub मध्ये TUMCHI_KEY_ITHE_TAKA बदला";
-    document.getElementById("feed").innerHTML="<p>❌ आधी Key टाका - मग सर्वांना दिसेल!</p>";
-  }
-}catch(e){ document.getElementById("mode").innerText="Error: "+e.message; }
-
+if(SUPABASE_KEY.length>50){
+  document.getElementById("mode").innerText="🌍 सर्वांना दिसतंय - Supabase ON";
+  loadPosts();
+}else{
+  document.getElementById("mode").innerText="❌ Key टाकली नाही - GitHub मध्ये TUMCHI_KEY_ITHE_TAKA बदला";
+  document.getElementById("feed").innerHTML="<p>❌ आधी Key टाका - मग सर्वांना दिसेल!</p>";
+}
 async function postVideo(){
-  if(!supa){ document.getElementById("msg").innerText="❌ आधी Supabase Key टाका!"; return; }
+  if(SUPABASE_KEY.length<=50){ document.getElementById("msg").innerText="❌ आधी Supabase Key टाका!"; return; }
   let file=document.getElementById("fileInput").files[0];
   let cap=document.getElementById("caption").value || "PiGram Bharat - Family Safe";
   if(!file){ document.getElementById("msg").innerText="आधी Photo / Video निवडा!"; return; }
   if(file.size>50000000){ document.getElementById("msg").innerText="Video 50MB पेक्षा मोठा आहे - छोटा Video घ्या!"; return; }
-  document.getElementById("msg").innerText="⏳ Upload होतंय... थोडं थांबा...";
-  let fileName=Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9.]/g,"");
-  let up=await supa.storage.from("videos").upload(fileName,file);
-  if(up.error){ document.getElementById("msg").innerText="❌ Upload Error: "+up.error.message; return; }
-  let pub=supa.storage.from("videos").getPublicUrl(fileName);
-  let ins=await supa.from("posts").insert([{caption:cap,image_url:pub.data.publicUrl,media_type:file.type}]);
-  if(ins.error){ document.getElementById("msg").innerText="❌ Save Error: "+ins.error.message; return; }
-  document.getElementById("msg").innerText="✅ Post झाला! आता Link ने सर्वांना दिसेल!";
-  document.getElementById("caption").value=""; document.getElementById("fileInput").value="";
-  loadPosts();
+  document.getElementById("msg").innerText="⏳ Upload होतंय... थोडं थांबा, Back जाऊ नका...";
+  try{
+    let fileName=Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9.]/g,"");
+    let up=await fetch(SUPABASE_URL+"/storage/v1/object/videos/"+fileName,{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":file.type},body:file});
+    if(!up.ok){ let t=await up.text(); document.getElementById("msg").innerText="❌ Upload Error: "+t.substring(0,120); return; }
+    let publicUrl=SUPABASE_URL+"/storage/v1/object/public/videos/"+fileName;
+    let ins=await fetch(SUPABASE_URL+"/rest/v1/posts",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({caption:cap,image_url:publicUrl,media_type:file.type})});
+    if(!ins.ok){ let t=await ins.text(); document.getElementById("msg").innerText="❌ Save Error: "+t.substring(0,150); return; }
+    document.getElementById("msg").innerText="✅ Post झाला! आता Link ने सर्वांना दिसेल!";
+    document.getElementById("caption").value=""; document.getElementById("fileInput").value="";
+    loadPosts();
+  }catch(e){ document.getElementById("msg").innerText="❌ Net Error: "+e.message; }
 }
 async function loadPosts(){
-  if(!supa) return;
-  let res=await supa.from("posts").select("*").order("id",{ascending:false}).limit(50);
-  let feed=document.getElementById("feed");
-  if(res.error){ feed.innerHTML="<p>❌ Load Error: "+res.error.message+"</p>"; return; }
-  if(res.data.length===0){ feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>"; return; }
-  feed.innerHTML="";
-  res.data.forEach(function(p){
-    if(!likes[p.id]) likes[p.id]=9;
-    let div=document.createElement("div"); div.className="post";
-    let media=(p.media_type && p.media_type.indexOf("video")!==-1)?'<video src="'+p.image_url+'" controls playsinline></video>':'<img src="'+p.image_url+'">';
-    div.innerHTML=media+'<div class="side"><button onclick="likePost('+p.id+',this)">❤️</button><span id="like-'+p.id+'">'+likes[p.id]+'</span><button onclick="commentPost('+p.id+')">💬</button><span>Comment</span><button onclick="shareApp()">🔁</button><span>Share</span><button onclick="shareApp()">✈️</button><span>Send</span></div><div class="cap"><b>'+p.caption+'</b></div><div class="cmt" id="cmt-'+p.id+'"></div>';
-    feed.appendChild(div);
-  });
+  try{
+    let res=await fetch(SUPABASE_URL+"/rest/v1/posts?select=*&order=id.desc&limit=50",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+    let data=await res.json();
+    let feed=document.getElementById("feed");
+    if(!Array.isArray(data)){ feed.innerHTML="<p>❌ Load Error: "+JSON.stringify(data).substring(0,150)+"</p>"; return; }
+    if(data.length===0){ feed.innerHTML="<p>अजून Post नाही - पहिला Post तुम्ही करा!</p>"; return; }
+    feed.innerHTML="";
+    data.forEach(function(p){
+      if(!likes[p.id]) likes[p.id]=9;
+      let div=document.createElement("div"); div.className="post";
+      let media=(p.media_type && p.media_type.indexOf("video")!==-1)?'<video src="'+p.image_url+'" controls playsinline></video>':'<img src="'+p.image_url+'">';
+      div.innerHTML=media+'<div class="side"><button onclick="likePost('+p.id+',this)">❤️</button><span id="like-'+p.id+'">'+likes[p.id]+'</span><button onclick="commentPost('+p.id+')">💬</button><span>Comment</span><button onclick="shareApp()">🔁</button><span>Share</span><button onclick="shareApp()">✈️</button><span>Send</span></div><div class="cap"><b>'+p.caption+'</b></div><div class="cmt" id="cmt-'+p.id+'"></div>';
+      feed.appendChild(div);
+    });
+  }catch(e){ document.getElementById("feed").innerHTML="<p>❌ Net Error: "+e.message+"</p>"; }
 }
 function likePost(id,btn){ likes[id]++; document.getElementById("like-"+id).innerText=likes[id]; btn.style.background="#ff0000"; }
 function commentPost(id){ let b=document.getElementById("cmt-"+id); b.innerHTML='<input id="in-'+id+'" placeholder="Comment लिहा..."><button onclick="sendCmt('+id+')">Post</button><div id="list-'+id+'"></div>'; }
@@ -93,7 +91,6 @@ function shareApp(){
   if(navigator.share){ navigator.share({title:"PiGram Bharat",text:"PiGram वर माझा Video बघ! Family Safe App",url:link}); }
   else{ navigator.clipboard.writeText(link); alert("Link Copy झाली! WhatsApp ला पाठवा!"); }
 }
-if(supa) loadPosts();
 </script>
 </body>
 </html>
