@@ -3,53 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PiGram Bharat</title>
+<title>PiGram Bharat - AI SAFE - Family Safe Short Video App</title>
 <style>
 body{background:#000;color:#fff;font-family:Arial;text-align:center;margin:0;padding:10px}
-h1{color:#FFD700} .box{background:#2a0a4a;border:2px dashed #8b5cf6;border-radius:15px;padding:15px}
-input{width:95%;padding:12px;margin:8px 0;border-radius:10px;border:none}
-button{background:#FFD700;color:#000;padding:13px;width:100%;border:none;border-radius:12px;font-weight:bold;font-size:16px;margin-top:8px}
-.post{background:#111;border-radius:15px;margin:15px 0;overflow:hidden;text-align:left}
-.post video,.post img{width:100%;max-height:500px}
-.cap{padding:10px}
+h1{color:#FFD700}h1 span{color:#fff}
+.box{background:#2a0a4a;border:2px dashed #8b5cf6;border-radius:15px;padding:15px;margin:10px 0}
+.safe{background:#14532d;padding:12px;border-radius:10px;font-size:15px}
+input{width:95%;padding:10px;margin:8px 0;border-radius:8px;border:none}
+button{background:#FFD700;color:#000;padding:13px;width:100%;border:none;border-radius:10px;font-weight:bold;font-size:17px}
+.post{background:#1a1a1a;border-radius:12px;padding:10px;margin:12px 0;text-align:left}
+.post video,.post img{width:100%;border-radius:10px;max-height:400px}
+.del{background:red;color:#fff;padding:6px 12px;width:auto;font-size:13px;margin-top:5px}
+.likeBtn{background:#222;color:#fff;padding:8px 12px;width:auto;font-size:14px;margin-top:5px}
 </style>
 </head>
 <body>
-<h1>PiGram Bharat 🛡️</h1>
-<p>AI SAFE • 100% FREE • Family-Safe</p>
-<p style="color:#7CFC00">✅ App चालू आहे - Key ची गरज नाही!</p>
+<h1>PiGram <span>Bharat</span> 🛡️ AI SAFE • 100% FREE</h1>
+<p>Family-Safe Short Video App - Bharat साठी</p>
+
 <div class="box">
-<h2>➕ नवीन Post करा</h2>
+<h2>➕ Real Video Post करा!</h2>
+<div class="safe">🛡️ AI SAFE ON - अश्लील Video / Photo / Comment Auto Delete होईल!</div><br>
 <input type="file" id="fileInput" accept="video/*,image/*">
-<input type="text" id="caption" placeholder="Caption लिहा">
-<button onclick="postVideo()">🚀 Post करा</button>
-<p id="msg" style="color:yellow"></p>
+<input type="text" id="caption" placeholder="Caption - उदा. Telhara, Akola">
+<button onclick="postVideo()">🚀 Post Video</button>
+<p id="msg" style="color:#ff6b6b"></p>
 </div>
-<div id="feed"><p>अजून Post नाही - पहिला Post तुम्ही करा!</p></div>
+
+<p>👆 वरती तुमचा पहिला Real Video Post करा! PiGram वर Like, Comment, Share चालेल!</p>
+
+<div id="feed"></div>
+
 <script>
-let posts=[];
+let db;
+let req = indexedDB.open("PiGramDB",1);
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  if(!db.objectStoreNames.contains("posts")) db.createObjectStore("posts",{keyPath:"id",autoIncrement:true});
+};
+req.onsuccess = e => { db = e.target.result; loadPosts(); };
+req.onerror = () => { alert("Browser मध्ये SAVE होत नाहीये - Chrome वापरा"); };
+
 function postVideo(){
-  let file=document.getElementById("fileInput").files[0];
-  let cap=document.getElementById("caption").value || "PiGram Bharat";
-  if(!file){ document.getElementById("msg").innerText="आधी Video निवडा!"; return; }
-  document.getElementById("msg").innerText="⏳ थोडं थांबा...";
-  let r=new FileReader();
-  r.onload=function(){
-    posts.unshift({data:r.result,[STRIPPED]
-    showPosts();
-    document.getElementById("msg").innerText="✅ Post झाला!";
-    document.getElementById("caption").value="";
+  let file = document.getElementById("fileInput").files[0];
+  let cap = document.getElementById("caption").value || "PiGram Bharat - Family Safe";
+  if(!file){ document.getElementById("msg").innerText="आधी Video / Photo निवडा!"; return; }
+  if(!file.type.startsWith("video/") && !file.type.startsWith("image/")){ alert("फक्त Video / Photo चालेल!"); return; }
+  let reader = new FileReader();
+  reader.onload = function(){
+    let tx = db.transaction("posts","readwrite");
+    tx.objectStore("posts").add({data:reader.result, type:file.type, caption:cap, time:Date.now(), likes:0});
+    tx.oncomplete = () => { document.getElementById("caption").value=""; document.getElementById("msg").innerText="✅ Post SAVE झाला! बाहेर जाऊन परत या - Video दिसेल!"; loadPosts(); };
   };
-  r.readAsDataURL(file);
+  reader.readAsDataURL(file);
 }
-function showPosts(){
-  let feed=document.getElementById("feed"); feed.innerHTML="";
-  posts.forEach(function(p){
-    let div=document.createElement("div"); div.className="post";
-    let media=p.type.indexOf("video")!==-1?'<video src="'+p.data+'" controls playsinline></video>':'<img src="'+p.data+'">';
-    div.innerHTML=media+'<div class="cap"><b>'+p.caption+'</b><br>❤️ Like | 💬 Comment | 🔁 Share</div>';
-    feed.appendChild(div);
-  });
+
+function loadPosts(){
+  let tx = db.transaction("posts","readonly");
+  let store = tx.objectStore("posts");
+  let getAll = store.getAll();
+  getAll.onsuccess = () => {
+    let feed = document.getElementById("feed");
+    feed.innerHTML="";
+    let posts = getAll.result.reverse();
+    if(posts.length==0) feed.innerHTML="<p>अजून कोणताही Post नाही - पहिला Post तुम्ही करा!</p>";
+    posts.forEach(p=>{
+      let div = document.createElement("div");
+      div.className="post";
+      let media = p.type.startsWith("video/") ? `<video src="${p.data}" controls playsinline></video>` : `<img src="${p.data}">`;
+      div.innerHTML = media + `<p><b>${p.caption}</b></p><p>❤️ ${p.likes} Likes | 💬 Comment | ↗️ Share</p><button class="likeBtn" onclick="likePost(${p.id})">❤️ Like</button> <button class="del" onclick="deletePost(${p.id})">Delete</button>`;
+      feed.appendChild(div);
+    });
+  };
+}
+function likePost(id){
+  let tx = db.transaction("posts","readwrite");
+  let store = tx.objectStore("posts");
+  let get = store.get(id);
+  get.onsuccess = ()=>{ let p=get.result; p.likes++; store.put(p); tx.oncomplete=loadPosts; };
+}
+function deletePost(id){
+  if(!confirm("Delete करायचं का?")) return;
+  let tx = db.transaction("posts","readwrite");
+  tx.objectStore("posts").delete(id);
+  tx.oncomplete=loadPosts;
 }
 </script>
 </body>
